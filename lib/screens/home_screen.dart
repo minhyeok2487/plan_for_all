@@ -3,6 +3,7 @@ import 'package:plan_for_all/services/task_service.dart';
 import 'package:provider/provider.dart';
 import 'package:plan_for_all/widgets/task_input.dart';
 import 'package:plan_for_all/widgets/task_list.dart';
+import 'package:plan_for_all/widgets/main_navigation_rail.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -32,17 +33,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: Row(
         children: [
-          NavigationRail(
-            extended: _isRailExpanded,
+          MainNavigationRail(
+            isExpanded: _isRailExpanded,
             selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) => setState(() => _selectedIndex = index),
-            destinations: const [
-              NavigationRailDestination(icon: Icon(Icons.today), label: Text('오늘')),
-              NavigationRailDestination(icon: Icon(Icons.calendar_view_week), label: Text('다음 7일')),
-              NavigationRailDestination(icon: Icon(Icons.folder), label: Text('기본함')),
-            ],
+            onSelect: (index) => setState(() => _selectedIndex = index),
+            onToggle: () => setState(() => _isRailExpanded = !_isRailExpanded),
           ),
-          const VerticalDivider(width: 1),
+          const VerticalDivider(width: 1, thickness: 1),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -75,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: TaskList(
                       tasks: taskService.tasks,
                       onDelete: (id) => taskService.deleteTask(id),
+                      onToggleDone: (id) => taskService.toggleTaskDone(id),
                     ),
                   ),
                 ],

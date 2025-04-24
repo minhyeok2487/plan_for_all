@@ -3,12 +3,14 @@ class Task {
   final DateTime createdAt;
   final String title;
   final String description;
+  final bool isDone;
 
   Task({
     required this.id,
     required this.createdAt,
     required this.title,
     required this.description,
+    required this.isDone,
   });
 
   factory Task.fromMap(Map<String, dynamic> map) {
@@ -17,6 +19,7 @@ class Task {
       createdAt: DateTime.parse(map['created_at'] as String),
       title: map['title'] as String,
       description: map['description'] as String? ?? '',
+      isDone: map['is_done'] as bool? ?? false,
     );
   }
 

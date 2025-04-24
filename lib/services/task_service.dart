@@ -57,4 +57,29 @@ class TaskService extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> toggleTaskDone(int id) async {
+    final index = _tasks.indexWhere((task) => task.id == id);
+    if (index == -1) return;
+
+    final oldTask = _tasks[index];
+    final updatedTask = Task(
+      id: oldTask.id,
+      createdAt: oldTask.createdAt,
+      title: oldTask.title,
+      description: oldTask.description,
+      isDone: !oldTask.isDone,
+    );
+
+    _tasks[index] = updatedTask;
+    notifyListeners();
+
+    try {
+      await supabase.from('tasks').update({'is_done': updatedTask.isDone}).eq('id', id);
+    } catch (_) {
+      // 롤백
+      _tasks[index] = oldTask;
+      notifyListeners();
+    }
+  }
 }
