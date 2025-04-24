@@ -31,56 +31,92 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final taskService = context.watch<TaskService>();
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Scaffold(
+      drawer: isMobile
+          ? Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.blue),
+              child: Text('메뉴', style: TextStyle(color: Colors.white, fontSize: 20)),
+            ),
+            for (int i = 0; i < _menuTitles.length; i++)
+              ListTile(
+                title: Text(_menuTitles[i]),
+                selected: i == _selectedIndex,
+                onTap: () {
+                  setState(() => _selectedIndex = i);
+                  Navigator.pop(context);
+                },
+              ),
+          ],
+        ),
+      )
+          : null,
       body: Stack(
         children: [
           Row(
             children: [
-              MainNavigationRail(
-                isExpanded: _isRailExpanded,
-                selectedIndex: _selectedIndex,
-                onSelect: (index) => setState(() => _selectedIndex = index),
-                onToggle: () => setState(() => _isRailExpanded = !_isRailExpanded),
-              ),
-              const VerticalDivider(width: 1, thickness: 1),
+              if (!isMobile) ...[
+                MainNavigationRail(
+                  isExpanded: _isRailExpanded,
+                  selectedIndex: _selectedIndex,
+                  onSelect: (index) => setState(() => _selectedIndex = index),
+                  onToggle: () => setState(() => _isRailExpanded = !_isRailExpanded),
+                ),
+                const VerticalDivider(width: 1, thickness: 1),
+              ],
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.menu),
-                            onPressed: () => setState(() => _isRailExpanded = !_isRailExpanded),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _menuTitles[_selectedIndex],
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      TaskInput(
-                        controller: _taskController,
-                        onSubmit: (title) async {
-                          await taskService.addTask(title, '');
-                          _taskController.clear();
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      Expanded(
-                        child: TaskList(
-                          tasks: taskService.tasks,
-                          onDelete: (id) => taskService.deleteTask(id),
-                          onToggleDone: (id) => taskService.toggleTaskDone(id),
-                          onSelect: (task) => setState(() => _selectedTask = task),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ✅ 메뉴 버튼과 타이틀을 같은 줄에
+                        Row(
+                          children: [
+                            if (isMobile)
+                              Builder(
+                                builder: (context) => IconButton(
+                                  icon: const Icon(Icons.menu),
+                                  onPressed: () => Scaffold.of(context).openDrawer(),
+                                ),
+                              )
+                            else
+                              IconButton(
+                                icon: const Icon(Icons.menu),
+                                onPressed: () => setState(() => _isRailExpanded = !_isRailExpanded),
+                              ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _menuTitles[_selectedIndex],
+                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 20),
+                        TaskInput(
+                          controller: _taskController,
+                          onSubmit: (title) async {
+                            await taskService.addTask(title, '');
+                            _taskController.clear();
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        Expanded(
+                          child: TaskList(
+                            tasks: taskService.tasks,
+                            onDelete: (id) => taskService.deleteTask(id),
+                            onToggleDone: (id) => taskService.toggleTaskDone(id),
+                            onSelect: (task) => setState(() => _selectedTask = task),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

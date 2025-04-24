@@ -84,6 +84,11 @@ class _TaskEditorState extends State<TaskEditor> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    final editorHeight = isMobile
+        ? MediaQuery.of(context).size.height * 0.5
+        : MediaQuery.of(context).size.height * 0.7;
+
     return Stack(
       children: [
         Positioned.fill(
@@ -100,7 +105,7 @@ class _TaskEditorState extends State<TaskEditor> with SingleTickerProviderStateM
             child: Container(
               margin: const EdgeInsets.all(12),
               padding: const EdgeInsets.all(20),
-              height: MediaQuery.of(context).size.height * 0.7,
+              height: editorHeight, // ← 여기 적용!
               width: MediaQuery.of(context).size.width * 0.9,
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
