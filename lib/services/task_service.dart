@@ -58,6 +58,7 @@ class TaskService extends ChangeNotifier {
     }
   }
 
+  /// task 체크
   Future<void> toggleTaskDone(int id) async {
     final index = _tasks.indexWhere((task) => task.id == id);
     if (index == -1) return;
@@ -79,6 +80,34 @@ class TaskService extends ChangeNotifier {
     } catch (_) {
       // 롤백
       _tasks[index] = oldTask;
+      notifyListeners();
+    }
+  }
+
+  /// task 수정
+  Future<void> updateTask(int id, String title, String description) async {
+    final index = _tasks.indexWhere((task) => task.id == id);
+    if (index == -1) return;
+
+    final old = _tasks[index];
+    final updated = Task(
+      id: id,
+      createdAt: old.createdAt,
+      title: title,
+      description: description,
+      isDone: old.isDone,
+    );
+
+    _tasks[index] = updated;
+    notifyListeners();
+
+    try {
+      await supabase.from('tasks').update({
+        'title': title,
+        'description': description,
+      }).eq('id', id);
+    } catch (_) {
+      _tasks[index] = old;
       notifyListeners();
     }
   }

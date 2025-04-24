@@ -38,6 +38,8 @@ dependencies:
   cupertino_icons: ^1.0.6
   supabase_flutter: ^2.0.0
   flutter_dotenv: ^5.1.0
+  markdown_editor_plus: ^0.2.15
+  flutter_markdown: ^0.7.2+1
 
 dev_dependencies:
   flutter_test:

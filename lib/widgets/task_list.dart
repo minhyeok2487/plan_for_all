@@ -5,12 +5,14 @@ class TaskList extends StatelessWidget {
   final List<Task> tasks;
   final void Function(int id)? onDelete;
   final void Function(int id)? onToggleDone;
+  final void Function(Task task)? onSelect;
 
   const TaskList({
     super.key,
     required this.tasks,
     this.onDelete,
     this.onToggleDone,
+    this.onSelect,
   });
 
   @override
@@ -35,6 +37,7 @@ class TaskList extends StatelessWidget {
             icon: const Icon(Icons.delete),
             onPressed: () => onDelete?.call(task.id),
           ),
+          onTap: () => onSelect?.call(task),
         );
       },
     );

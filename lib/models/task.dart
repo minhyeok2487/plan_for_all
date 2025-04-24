@@ -1,8 +1,8 @@
 class Task {
   final int id;
   final DateTime createdAt;
-  final String title;
-  final String description;
+  String title;
+  String description;
   final bool isDone;
 
   Task({
