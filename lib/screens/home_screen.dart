@@ -17,7 +17,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _taskController = TextEditingController();
   final List<String> _menuTitles = ['오늘', '다음 7일', '기본함'];
 
-
   @override
   void initState() {
     super.initState();
@@ -66,14 +65,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 20),
                   TaskInput(
                     controller: _taskController,
-                    onSubmit: (task) async {
-                      await taskService.addTask(task);
+                    onSubmit: (title) async {
+                      await taskService.addTask(title, ''); // description은 비워서 추가
                       _taskController.clear();
                     },
                   ),
                   const SizedBox(height: 20),
                   Expanded(
-                    child: TaskList(tasks: taskService.tasks),
+                    child: TaskList(
+                      tasks: taskService.tasks,
+                      onDelete: (id) => taskService.deleteTask(id),
+                    ),
                   ),
                 ],
               ),

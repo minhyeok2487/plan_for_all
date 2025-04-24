@@ -1,0 +1,31 @@
+class Task {
+  final int id;
+  final DateTime createdAt;
+  final String title;
+  final String description;
+
+  Task({
+    required this.id,
+    required this.createdAt,
+    required this.title,
+    required this.description,
+  });
+
+  factory Task.fromMap(Map<String, dynamic> map) {
+    return Task(
+      id: map['id'] as int,
+      createdAt: DateTime.parse(map['created_at'] as String),
+      title: map['title'] as String,
+      description: map['description'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'created_at': createdAt.toIso8601String(),
+      'title': title,
+      'description': description,
+    };
+  }
+}

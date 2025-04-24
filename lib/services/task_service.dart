@@ -1,32 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:plan_for_all/models/task.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TaskService extends ChangeNotifier {
   final SupabaseClient supabase;
-  final List<String> _tasks = [];
+  final List<Task> _tasks = [];
 
   TaskService(this.supabase);
 
-  List<String> get tasks => List.unmodifiable(_tasks);
+  List<Task> get tasks => List.unmodifiable(_tasks);
 
+  /// 모든 task 가져오기
   Future<void> fetchTasks() async {
-    final response = await supabase.from('todos').select('title');
+    final response = await supabase
+        .from('tasks')
+        .select('id, created_at, title, description')
+        .order('created_at', ascending: false);
+
     _tasks
       ..clear()
-      ..addAll(response.map<String>((e) => e['title'] as String));
+      ..addAll(response.map<Task>((e) => Task.fromMap(e)));
     notifyListeners();
   }
 
-  Future<void> addTask(String task) async {
-    if (task.isEmpty) return;
+  /// 새로운 task 추가
+  Future<void> addTask(String title, String description) async {
+    if (title.isEmpty) return;
 
-    _tasks.add(task);
+    try {
+      final inserted = await supabase
+          .from('tasks')
+          .insert({'title': title, 'description': description})
+          .select()
+          .single();
+
+      final task = Task.fromMap(inserted);
+      _tasks.insert(0, task); // 최신 순으로 추가
+      notifyListeners();
+    } catch (_) {
+      // 에러 처리 필요 시 여기에
+    }
+  }
+
+  /// task 삭제
+  Future<void> deleteTask(int id) async {
+    final index = _tasks.indexWhere((task) => task.id == id);
+    if (index == -1) return;
+
+    final removedTask = _tasks.removeAt(index);
     notifyListeners();
 
     try {
-      await supabase.from('todos').insert({'title': task});
+      await supabase.from('tasks').delete().eq('id', id);
     } catch (_) {
-      _tasks.remove(task);
+      _tasks.insert(index, removedTask); // 롤백
       notifyListeners();
     }
   }
