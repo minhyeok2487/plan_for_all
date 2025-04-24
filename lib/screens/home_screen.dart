@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plan_for_all/widgets/task_input.dart';
 import 'package:plan_for_all/widgets/task_list.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,14 +18,47 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<String> _menuTitles = ['오늘', '다음 7일', '기본함'];
 
-  void _addTask(String task) {
-    if (task.isNotEmpty) {
+  final SupabaseClient supabase = Supabase.instance.client;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTasks();
+  }
+
+  Future<void> _fetchTasks() async {
+    final response = await supabase.from('todos').select('title');
+    final List<String> fetchedTasks = response.map<String>((e) => e['title'] as String).toList();
+
+    setState(() {
+      _tasks.clear();
+      _tasks.addAll(fetchedTasks);
+    });
+  }
+
+  Future<void> _addTask(String task) async {
+    if (task.isEmpty) return;
+
+    // 1. 먼저 UI에 추가
+    setState(() {
+      _tasks.add(task);
+    });
+    _taskController.clear();
+
+    // 2. 서버에 저장 시도
+    try {
+      await supabase.from('todos').insert({'title': task});
+    } catch (e) {
+      // 3. 실패하면 롤백
       setState(() {
-        _tasks.add(task);
+        _tasks.remove(task);
       });
-      _taskController.clear();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('할 일 추가 실패')),
+      );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
