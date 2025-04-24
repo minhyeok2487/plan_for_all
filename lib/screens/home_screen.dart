@@ -32,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final taskService = context.watch<TaskService>();
     final isMobile = MediaQuery.of(context).size.width < 600;
+    bool _isRefreshing = false;
 
     return Scaffold(
       drawer: isMobile
@@ -92,9 +93,38 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onPressed: () => setState(() => _isRailExpanded = !_isRailExpanded),
                               ),
                             const SizedBox(width: 8),
-                            Text(
-                              _menuTitles[_selectedIndex],
-                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            Expanded(
+                              child: Text(
+                                _menuTitles[_selectedIndex],
+                                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: '동기화',
+                              onPressed: _isRefreshing
+                                  ? null
+                                  : () async {
+                                setState(() => _isRefreshing = true);
+                                await context.read<TaskService>().fetchTasks();
+                                setState(() => _isRefreshing = false);
+
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('동기화 완료'),
+                                      duration: Duration(seconds: 2),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              },
+                              icon: _isRefreshing
+                                  ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                                  : const Icon(Icons.refresh),
                             ),
                           ],
                         ),
