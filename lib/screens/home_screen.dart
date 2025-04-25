@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:plan_for_all/providers/user_provider.dart';
 import 'package:plan_for_all/widgets/task_ediitor.dart';
 import 'package:plan_for_all/models/task.dart';
 import 'package:plan_for_all/services/task_service.dart';
@@ -27,7 +28,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<TaskService>().fetchTasks());
+    Future.microtask(() {
+      context.read<UserProvider>().loadUser();
+      context.read<TaskService>().fetchTasks();
+    });
   }
 
   @override
@@ -38,10 +42,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       drawer: isMobile
           ? MenuDrawer(
-        selectedIndex: _selectedIndex,
-        menuTitles: _menuTitles,
-        onTap: (index) => setState(() => _selectedIndex = index),
-      )
+              selectedIndex: _selectedIndex,
+              menuTitles: _menuTitles,
+              onTap: (index) => setState(() => _selectedIndex = index),
+            )
           : null,
       body: Stack(
         children: [
@@ -52,7 +56,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   isExpanded: _isRailExpanded,
                   selectedIndex: _selectedIndex,
                   onSelect: (index) => setState(() => _selectedIndex = index),
-                  onToggle: () => setState(() => _isRailExpanded = !_isRailExpanded),
+                  onToggle: () =>
+                      setState(() => _isRailExpanded = !_isRailExpanded),
                 ),
                 const VerticalDivider(width: 1, thickness: 1),
               ],
@@ -71,7 +76,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             if (isMobile) {
                               Scaffold.of(context).openDrawer();
                             } else {
-                              setState(() => _isRailExpanded = !_isRailExpanded);
+                              setState(
+                                  () => _isRailExpanded = !_isRailExpanded);
                             }
                           },
                           onRefresh: () async {
@@ -100,8 +106,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               _taskController.clear();
                             },
                             onDelete: (id) => taskService.deleteTask(id),
-                            onToggleDone: (id) => taskService.toggleTaskDone(id),
-                            onSelect: (task) => setState(() => _selectedTask = task),
+                            onToggleDone: (id) =>
+                                taskService.toggleTaskDone(id),
+                            onSelect: (task) =>
+                                setState(() => _selectedTask = task),
                           ),
                         ),
                       ],
