@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:plan_for_all/models/task.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:plan_for_all/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
 class TaskService extends ChangeNotifier {
   final SupabaseClient supabase;
@@ -10,11 +12,15 @@ class TaskService extends ChangeNotifier {
 
   List<Task> get tasks => List.unmodifiable(_tasks);
 
-  /// 모든 task 가져오기
-  Future<void> fetchTasks() async {
+  /// 로그인한 사용자의 task 가져오기
+  Future<void> fetchTasks(BuildContext context) async {
+    final userId = context.read<UserProvider>().user?.id;
+    if (userId == null) return;
+
     final response = await supabase
         .from('tasks')
-        .select('id, created_at, title, description')
+        .select('id, created_at, title, description, is_done, user_id')
+        .eq('user_id', userId)
         .order('created_at', ascending: false);
 
     _tasks
@@ -23,22 +29,29 @@ class TaskService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 새로운 task 추가
-  Future<void> addTask(String title, String description) async {
+  /// task 추가 (user_id 포함)
+  Future<void> addTask(BuildContext context, String title) async {
     if (title.isEmpty) return;
+
+    final userId = context.read<UserProvider>().user?.id;
+    if (userId == null) return;
 
     try {
       final inserted = await supabase
           .from('tasks')
-          .insert({'title': title, 'description': description})
+          .insert({
+        'title': title,
+        'description': null,
+        'user_id': userId, // ✅ user_id 포함
+      })
           .select()
           .single();
 
       final task = Task.fromMap(inserted);
-      _tasks.insert(0, task); // 최신 순으로 추가
+      _tasks.insert(0, task); // 최신 순
       notifyListeners();
-    } catch (_) {
-      // 에러 처리 필요 시 여기에
+    } catch (e) {
+      // 에러 로깅 추가 가능
     }
   }
 
@@ -58,7 +71,7 @@ class TaskService extends ChangeNotifier {
     }
   }
 
-  /// task 체크
+  /// 완료 상태 토글
   Future<void> toggleTaskDone(int id) async {
     final index = _tasks.indexWhere((task) => task.id == id);
     if (index == -1) return;
@@ -67,6 +80,7 @@ class TaskService extends ChangeNotifier {
     final updatedTask = Task(
       id: oldTask.id,
       createdAt: oldTask.createdAt,
+      userId: oldTask.userId,
       title: oldTask.title,
       description: oldTask.description,
       isDone: !oldTask.isDone,
@@ -78,7 +92,6 @@ class TaskService extends ChangeNotifier {
     try {
       await supabase.from('tasks').update({'is_done': updatedTask.isDone}).eq('id', id);
     } catch (_) {
-      // 롤백
       _tasks[index] = oldTask;
       notifyListeners();
     }
@@ -93,6 +106,7 @@ class TaskService extends ChangeNotifier {
     final updated = Task(
       id: id,
       createdAt: old.createdAt,
+      userId: old.userId,
       title: title,
       description: description,
       isDone: old.isDone,
@@ -111,4 +125,10 @@ class TaskService extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void clearTasks() {
+    _tasks.clear();
+    notifyListeners();
+  }
+
 }

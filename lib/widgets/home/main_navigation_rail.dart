@@ -62,7 +62,7 @@ class MainNavigationRail extends StatelessWidget {
             ],
             onSelected: (value) async {
               if (value == 'logout') {
-                await context.read<UserProvider>().logout();
+                await context.read<UserProvider>().logout(context);
                 if (context.mounted) {
                   Navigator.pushReplacement(
                     context,

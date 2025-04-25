@@ -1,6 +1,4 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:plan_for_all/providers/user_provider.dart';
 import 'package:plan_for_all/widgets/task_ediitor.dart';
 import 'package:plan_for_all/models/task.dart';
 import 'package:plan_for_all/services/task_service.dart';
@@ -28,11 +26,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      context.read<UserProvider>().loadUser();
-      context.read<TaskService>().fetchTasks();
-    });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                           onRefresh: () async {
                             setState(() => _isRefreshing = true);
-                            await taskService.fetchTasks();
+                            await taskService.fetchTasks(context);
                             setState(() => _isRefreshing = false);
 
                             if (context.mounted) {
@@ -102,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             controller: _taskController,
                             tasks: taskService.tasks,
                             onAdd: (title) async {
-                              await taskService.addTask(title, '');
+                              await taskService.addTask(context, title);
                               _taskController.clear();
                             },
                             onDelete: (id) => taskService.deleteTask(id),

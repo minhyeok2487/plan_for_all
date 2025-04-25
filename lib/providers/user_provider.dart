@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:plan_for_all/services/task_service.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class UserProvider with ChangeNotifier {
@@ -16,10 +18,14 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> logout() async {
+  Future<void> logout(BuildContext context) async {
     await Supabase.instance.client.auth.signOut();
+
     _user = null;
     _metadata = null;
+
+    context.read<TaskService>().clearTasks();
+
     notifyListeners();
   }
 }

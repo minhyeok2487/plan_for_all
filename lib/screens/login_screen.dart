@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:plan_for_all/providers/user_provider.dart';
 import 'package:plan_for_all/services/avata_service.dart';
+import 'package:plan_for_all/services/task_service.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'home_screen.dart';
 
@@ -42,6 +45,11 @@ class _LoginScreenState extends State<LoginScreen> {
           _showSnack('회원가입 성공. 이메일 인증 후 로그인하세요.');
         } else {
           _showSnack('회원가입 완료! 바로 로그인됩니다.');
+
+          await context.read<UserProvider>().loadUser();
+          await context.read<TaskService>().fetchTasks(context);
+          if (!mounted) return;
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -54,6 +62,10 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         if (res.session != null) {
+          await context.read<UserProvider>().loadUser();
+          await context.read<TaskService>().fetchTasks(context);
+          if (!mounted) return;
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const HomeScreen()),
